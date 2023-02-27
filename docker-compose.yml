@@ -1,0 +1,22 @@
+version: '2.15.1'
+
+services:
+  tinyauth:
+      build: ./
+      command: ./tinyapi db
+      ports:
+        - 6969:8000
+      depends_on:
+        - db
+
+  db:
+      restart: always
+      image: postgres:14.7
+      volumes:
+      - .\.database\postgres\data:/var/lib/postgresql/data
+      environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=123456
+        - POSTGRES_DB=postgres
+      ports:
+        - 5436:5432
