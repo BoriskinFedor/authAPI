@@ -19,7 +19,9 @@ func New(config *Config) *Server {
 }
 
 func (s *Server) Start() error {
-	s.engine.GET("/auth", s.Auth)
+	s.engine.POST("/auth", s.Auth)
+	s.engine.GET("/log", s.LogGet)
+	s.engine.GET("/logclean", s.LogClean)
 
 	if err := s.store.Open(); err != nil {
 		return err

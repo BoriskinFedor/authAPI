@@ -6,10 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Server) Auth(ctx *gin.Context) {
+func (s *Server) LogClean(ctx *gin.Context) {
 	user := model.User{
-		Login:    ctx.Request.Header["X-Login"][0],
-		Password: ctx.Request.Header["X-Password"][0],
+		Login:    ctx.Request.Header["Login"][0],
+		Password: ctx.Request.Header["Password"][0],
 	}
 
 	s.store.User().Auth(&user)

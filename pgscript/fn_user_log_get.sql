@@ -24,8 +24,8 @@ begin
     select jsonb_agg(r)
     from (
         select
-            l.create_ts,
-            la.name
+            l.create_ts as log_ts,
+            la.name as log_action
         from api.t_user_log l
         join api.t_user_log_action la on
             la.id = l.action_id
