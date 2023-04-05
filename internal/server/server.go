@@ -14,7 +14,7 @@ type Server struct {
 func New(config *Config) *Server {
 	return &Server{
 		engine: gin.Default(),
-		store:  store.New(config.dbURL),
+		store:  store.New(config.DBURL),
 	}
 }
 

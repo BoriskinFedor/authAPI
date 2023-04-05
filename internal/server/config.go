@@ -1,7 +1,7 @@
 package server
 
 type Config struct {
-	dbURL string
+	DBURL string
 }
 
 func NewConfig() *Config {

@@ -8,13 +8,12 @@ import (
 
 func (s *Server) LogClean(ctx *gin.Context) {
 	user := model.User{
-		Login:    ctx.Request.Header["Login"][0],
-		Password: ctx.Request.Header["Password"][0],
+		Token: ctx.Request.Header["X-Token"][0],
 	}
 
-	s.store.User().Auth(&user)
+	s.store.User().LogClean(&user)
 
 	ctx.JSON(200, gin.H{
-		"X-Token": user.Token,
+		"status": "ok",
 	})
 }

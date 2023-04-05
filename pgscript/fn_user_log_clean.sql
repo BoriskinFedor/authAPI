@@ -1,5 +1,5 @@
 create or replace function api.fn_user_log_clean(
-    arg_token bytea
+    arg_token varchar
 )
 returns void
 as
@@ -7,7 +7,9 @@ $body$
 declare
     v_user_id integer;
 begin
-    if arg_token is null then
+    arg_token = trim(arg_token);
+
+    if coalesce(arg_token, '') = '' then
         raise exception 'API_ERROR Ошибка параметра';
     end if;
 
@@ -17,7 +19,7 @@ begin
         st.id = s.type_id
     where
         s.token = arg_token and
-        (s.create_ts + st.duration)::timestamp < now()::timestamp
+        (s.create_ts + st.duration)::timestamp > now()::timestamp
     into v_user_id;
 
     delete from api.t_user_log l
@@ -25,10 +27,10 @@ begin
 end;
 $body$
 language plpgsql;
-alter function api.fn_user_log_clean(bytea) owner to postgres;
+alter function api.fn_user_log_clean(varchar) owner to postgres;
 
-grant execute on function api.fn_user_log_clean(bytea) to postgres;
-grant execute on function api.fn_user_log_clean(bytea) to api_caller;
-revoke all on function api.fn_user_log_clean(bytea) from public;
+grant execute on function api.fn_user_log_clean(varchar) to postgres;
+grant execute on function api.fn_user_log_clean(varchar) to api_caller;
+revoke all on function api.fn_user_log_clean(varchar) from public;
 
-comment on function api.fn_user_log_clean(bytea) is 'Очистка лога авторизации пользователя';
+comment on function api.fn_user_log_clean(varchar) is 'Очистка лога авторизации пользователя';

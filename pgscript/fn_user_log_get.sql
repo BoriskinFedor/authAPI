@@ -1,5 +1,5 @@
 create or replace function api.fn_user_log_get(
-    arg_token bytea
+    arg_token varchar
 )
 returns jsonb
 as
@@ -8,7 +8,9 @@ declare
     v_user_id integer;
     v_result jsonb;
 begin
-    if arg_token is null then
+    arg_token = trim(arg_token);
+
+    if coalesce(arg_token, '') = '' then
         raise exception 'API_ERROR Ошибка параметра';
     end if;
 
@@ -18,7 +20,7 @@ begin
         st.id = s.type_id
     where
         s.token = arg_token and
-        (s.create_ts + st.duration)::timestamp < now()::timestamp
+        (s.create_ts + st.duration)::timestamp > now()::timestamp
     into v_user_id;
 
     select jsonb_agg(r)
@@ -38,10 +40,10 @@ begin
 end;
 $body$
 language plpgsql IMMUTABLE;
-alter function api.fn_user_log_get(bytea) owner to postgres;
+alter function api.fn_user_log_get(varchar) owner to postgres;
 
-grant execute on function api.fn_user_log_get(bytea) to postgres;
-grant execute on function api.fn_user_log_get(bytea) to api_caller;
-revoke all on function api.fn_user_log_get(bytea) from public;
+grant execute on function api.fn_user_log_get(varchar) to postgres;
+grant execute on function api.fn_user_log_get(varchar) to api_caller;
+revoke all on function api.fn_user_log_get(varchar) from public;
 
-comment on function api.fn_user_log_get(bytea) is 'Лог авторизации пользователя';
+comment on function api.fn_user_log_get(varchar) is 'Лог авторизации пользователя';

@@ -2,20 +2,21 @@ package server
 
 import (
 	"authAPI/internal/model"
+	"encoding/json"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (s *Server) LogGet(ctx *gin.Context) {
 	user := model.User{
-		Login:    ctx.Request.Header["X-Login"][0],
-		Password: ctx.Request.Header["X-Password"][0],
-		Token:    []byte(ctx.Request.Header["X-Token"][0]),
+		Token: ctx.Request.Header["X-Token"][0],
 	}
 
-	s.store.User().LogGet(&user)
+	logs, _ := s.store.User().LogGet(&user)
+
+	jsonlogs, _ := json.Marshal(logs)
 
 	ctx.JSON(200, gin.H{
-		"X-Token": user.Token,
+		"message": string(jsonlogs),
 	})
 }

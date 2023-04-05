@@ -2,7 +2,7 @@ create or replace function api.fn_user_auth(
     arg_login varchar,
     arg_password varchar
 )
-returns bytea
+returns varchar
 as
 $body$
 declare
@@ -17,7 +17,7 @@ declare
     v_failed_pass_limit integer = 5;
     v_failed_pass_count integer;
     v_is_correct_password boolean;
-    v_token bytea = sha256(now()::timestamp::varchar::bytea);
+    v_token varchar = sha256(now()::timestamp::varchar::bytea)::varchar;
     v_session_id integer;
 begin
     arg_login    = trim(arg_login);
@@ -26,7 +26,7 @@ begin
     select
         u.id,
         coalesce(u.failed_pass_count, 0),
-        sha256(concat(arg_password, u.password_salt))::varchar = u.password
+        sha256(concat(arg_password, u.password_salt)::varchar::bytea)::varchar = u.password
     from basis.t_user u
     where u.login = arg_login
     into

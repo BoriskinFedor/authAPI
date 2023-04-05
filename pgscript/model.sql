@@ -81,7 +81,7 @@ create table api.t_session(
 	id serial primary key,
 	user_id integer not null references basis.t_user(id) on update cascade on delete cascade,
 	create_ts timestamp not null default now()::timestamp,
-	token bytea not null,
+	token varchar not null,
 	type_id integer not null references api.t_session_type(id) on update cascade on delete no action
 );
 grant all on table api.t_session to postgres;
