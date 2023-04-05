@@ -2,21 +2,23 @@ version: '2.15.1'
 
 services:
   tinyauth:
-      build: ./
-      command: ./tinyapi db
-      ports:
-        - 6969:8000
-      depends_on:
-        - db
+    build: ./
+    command: ./authapi db
+    ports:
+      - 6969:8080
+    depends_on:
+      - db
 
   db:
-      restart: always
-      image: postgres:14.7
-      volumes:
+    restart: always
+    image: postgres:latest
+    volumes:
+      - .\pg:/var/lib/postgresql
       - .\.database\postgres\data:/var/lib/postgresql/data
-      environment:
-        - POSTGRES_USER=postgres
-        - POSTGRES_PASSWORD=123456
-        - POSTGRES_DB=postgres
-      ports:
-        - 5436:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=postgres
+    command: /bin/sh -c "/var/lib/postgresql/pginit.sh"
+    ports:
+      - 5436:5432

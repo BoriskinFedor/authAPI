@@ -7,7 +7,7 @@ import (
 
 func main() {
 	config := &server.Config{
-		DBURL: "postgres://postgres:postgrespw@localhost:32768?sslmode=disable",
+		DBURL: "postgres://postgres:123456@db:5432?sslmode=disable",
 	}
 
 	srv := server.New(config)
