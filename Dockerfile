@@ -14,6 +14,6 @@ COPY ./ ./
 
 # build go app
 RUN go mod download
-RUN go build -o authapi cmd/authapi/main.go
+RUN go build -o authapi main.go
 
 CMD ["./authapi"]

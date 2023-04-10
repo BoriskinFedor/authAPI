@@ -81,7 +81,7 @@ create table api.t_session(
 	id serial primary key,
 	user_id integer not null references basis.t_user(id) on update cascade on delete cascade,
 	create_ts timestamp not null default now()::timestamp,
-	token varchar not null,
+	token uuid not null,
 	type_id integer not null references api.t_session_type(id) on update cascade on delete no action
 );
 grant all on table api.t_session to postgres;
@@ -156,21 +156,17 @@ create index on api.t_user_log using btree (user_id);
 
 
 create or replace function api.fn_user_log_get(
-    arg_token varchar
+    arg_token uuid
 )
-returns jsonb
+returns table(
+    log_ts timestamp,
+    log_action varchar
+)
 as
 $body$
 declare
     v_user_id integer;
-    v_result jsonb;
 begin
-    arg_token = trim(arg_token);
-
-    if coalesce(arg_token, '') = '' then
-        raise exception 'API_ERROR Ошибка параметра';
-    end if;
-
     select s.user_id
     from api.t_session s
     join api.t_session_type st on
@@ -180,36 +176,35 @@ begin
         (s.create_ts + st.duration)::timestamp > now()::timestamp
     into v_user_id;
 
-    select jsonb_agg(r)
-    from (
-        select
-            l.create_ts as log_ts,
-            la.name as log_action
-        from api.t_user_log l
-        join api.t_user_log_action la on
-            la.id = l.action_id
-        where l.user_id = v_user_id
-        order by l.create_ts desc
-    ) r
-    into v_result;
+    if not found then
+        raise exception 'API_ERROR Ошибка параметра';
+    end if;
 
-    return v_result;
+    return query
+    select
+        l.create_ts as log_ts,
+        la.name as log_action
+    from api.t_user_log l
+    join api.t_user_log_action la on
+        la.id = l.action_id
+    where l.user_id = v_user_id
+    order by l.create_ts desc;
 end;
 $body$
 language plpgsql IMMUTABLE;
-alter function api.fn_user_log_get(varchar) owner to postgres;
+alter function api.fn_user_log_get(uuid) owner to postgres;
 
-grant execute on function api.fn_user_log_get(varchar) to postgres;
-grant execute on function api.fn_user_log_get(varchar) to api_caller;
-revoke all on function api.fn_user_log_get(varchar) from public;
+grant execute on function api.fn_user_log_get(uuid) to postgres;
+grant execute on function api.fn_user_log_get(uuid) to api_caller;
+revoke all on function api.fn_user_log_get(uuid) from public;
 
-comment on function api.fn_user_log_get(varchar) is 'Лог авторизации пользователя';
+comment on function api.fn_user_log_get(uuid) is 'Лог авторизации пользователя';
 
 
 
 
 create or replace function api.fn_user_log_clean(
-    arg_token varchar
+    arg_token uuid
 )
 returns void
 as
@@ -217,12 +212,6 @@ $body$
 declare
     v_user_id integer;
 begin
-    arg_token = trim(arg_token);
-
-    if coalesce(arg_token, '') = '' then
-        raise exception 'API_ERROR Ошибка параметра';
-    end if;
-
     select s.user_id
     from api.t_session s
     join api.t_session_type st on
@@ -232,18 +221,22 @@ begin
         (s.create_ts + st.duration)::timestamp > now()::timestamp
     into v_user_id;
 
+    if not found then
+        raise exception 'API_ERROR Ошибка параметра';
+    end if;
+
     delete from api.t_user_log l
     where l.user_id = v_user_id;
 end;
 $body$
 language plpgsql;
-alter function api.fn_user_log_clean(varchar) owner to postgres;
+alter function api.fn_user_log_clean(uuid) owner to postgres;
 
-grant execute on function api.fn_user_log_clean(varchar) to postgres;
-grant execute on function api.fn_user_log_clean(varchar) to api_caller;
-revoke all on function api.fn_user_log_clean(varchar) from public;
+grant execute on function api.fn_user_log_clean(uuid) to postgres;
+grant execute on function api.fn_user_log_clean(uuid) to api_caller;
+revoke all on function api.fn_user_log_clean(uuid) from public;
 
-comment on function api.fn_user_log_clean(varchar) is 'Очистка лога авторизации пользователя';
+comment on function api.fn_user_log_clean(uuid) is 'Очистка лога авторизации пользователя';
 
 
 
@@ -252,7 +245,7 @@ create or replace function api.fn_user_auth(
     arg_login varchar,
     arg_password varchar
 )
-returns varchar
+returns uuid
 as
 $body$
 declare
@@ -267,7 +260,7 @@ declare
     v_failed_pass_limit integer = 5;
     v_failed_pass_count integer;
     v_is_correct_password boolean;
-    v_token varchar = sha256(now()::timestamp::varchar::bytea)::varchar;
+    v_token uuid = fn_uuid_time_ordered();
     v_session_id integer;
 begin
     arg_login    = trim(arg_login);
@@ -371,3 +364,48 @@ grant execute on function api.fn_user_auth(varchar, varchar) to api_caller;
 revoke all on function api.fn_user_auth(varchar, varchar) from public;
 
 comment on function api.fn_user_auth(varchar, varchar) is 'Авторизация пользователя';
+
+
+
+
+create or replace function fn_uuid_time_ordered() returns uuid as $$
+declare
+	v_time timestamp with time zone:= null;
+	v_secs bigint := null;
+	v_usec bigint := null;
+
+	v_timestamp bigint := null;
+	v_timestamp_hex varchar := null;
+
+	v_clkseq_and_nodeid bigint := null;
+	v_clkseq_and_nodeid_hex varchar := null;
+
+	v_bytes bytea;
+
+	c_epoch bigint := -12219292800; -- RFC-4122 epoch: '1582-10-15 00:00:00'
+	c_variant bit(64):= x'8000000000000000'; -- RFC-4122 variant: b'10xx...'
+begin
+
+	-- Get seconds and micros
+	v_time := clock_timestamp();
+	v_secs := EXTRACT(EPOCH FROM v_time);
+	v_usec := mod(EXTRACT(MICROSECONDS FROM v_time)::numeric, 10^6::numeric);
+
+	-- Generate timestamp hexadecimal (and set version 6)
+	v_timestamp := (((v_secs - c_epoch) * 10^6) + v_usec) * 10;
+	v_timestamp_hex := lpad(to_hex(v_timestamp), 16, '0');
+	v_timestamp_hex := substr(v_timestamp_hex, 2, 12) || '6' || substr(v_timestamp_hex, 14, 3);
+
+	-- Generate clock sequence and node identifier hexadecimal (and set variant b'10xx')
+	v_clkseq_and_nodeid := ((random()::numeric * 2^62::numeric)::bigint::bit(64) | c_variant)::bigint;
+	v_clkseq_and_nodeid_hex := lpad(to_hex(v_clkseq_and_nodeid), 16, '0');
+
+	-- Concat timestemp, clock sequence and node identifier hexadecimal
+	v_bytes := decode(v_timestamp_hex || v_clkseq_and_nodeid_hex, 'hex');
+
+	return encode(v_bytes, 'hex')::uuid;
+	
+end $$ language plpgsql;
+
+insert into basis.t_user(login, password, password_salt)
+values('bfv', sha256(('1'||'2')::varchar::bytea)::varchar, '2');

@@ -13,12 +13,14 @@ services:
     restart: always
     image: postgres:latest
     volumes:
-      - .\pg:/var/lib/postgresql
+      - .\pg\init.sql:/docker-entrypoint-initdb.d/init.sql
       - .\.database\postgres\data:/var/lib/postgresql/data
     environment:
+      - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
+      - POSTGRES_AUTH_METHOD=scram-sha-256
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123456
       - POSTGRES_DB=postgres
-    command: /bin/sh -c "/var/lib/postgresql/pginit.sh"
+    #command: truncate -s 0 /var/lib/postgresql/pg_hba.conf && echo host all all all md5 >> /var/lib/postgresql/data/pg_hba.conf
     ports:
       - 5436:5432

@@ -11,7 +11,7 @@ func (r *UserRepository) Auth(u *model.User) {
 }
 
 func (r *UserRepository) LogGet(u *model.User) (*[]model.UserLog, error) {
-	rows, err := r.store.db.Query("select api.fn_user_log_get(arg_token := $1)", u.Token)
+	rows, err := r.store.db.Query("select * from api.fn_user_log_get(arg_token := $1)", u.Token)
 	if err != nil {
 		return nil, err
 	}

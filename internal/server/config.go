@@ -1,7 +1,8 @@
 package server
 
 type Config struct {
-	DBURL string
+	DBURL            string
+	DBReconnectCount int
 }
 
 func NewConfig() *Config {

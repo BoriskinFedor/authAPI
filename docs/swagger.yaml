@@ -1,0 +1,84 @@
+basePath: /
+definitions:
+  model.Session:
+    properties:
+      token:
+        type: string
+    type: object
+  model.UserLog:
+    properties:
+      log_action:
+        type: string
+      log_ts:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Тестовое задание на GO-разработчика
+  title: API авторизации по токену
+  version: "1.0"
+paths:
+  /auth:
+    post:
+      description: Авторизация. Получить токен
+      parameters:
+      - description: Логин пользователя
+        in: header
+        name: X-Login
+        required: true
+        type: string
+      - description: Пароль пользователя
+        in: header
+        name: X-Password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Session'
+      summary: Авторизация
+      tags:
+      - auth
+  /log:
+    get:
+      description: Лог авторизации пользователя
+      parameters:
+      - description: Токен
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.UserLog'
+            type: array
+      summary: Лог
+      tags:
+      - log
+  /logclean:
+    delete:
+      description: Очистка лога авторизации пользователя
+      parameters:
+      - description: Токен
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Очистить лог
+      tags:
+      - log
+swagger: "2.0"
