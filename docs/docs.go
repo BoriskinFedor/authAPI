@@ -46,7 +46,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Session"
+                            "$ref": "#/definitions/model.User"
                         }
                     }
                 }
@@ -112,9 +112,15 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "model.Session": {
+        "model.User": {
             "type": "object",
             "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
                 "token": {
                     "type": "string"
                 }
@@ -140,8 +146,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "API авторизации по токену",
-	Description:      "Тестовое задание на GO-разработчика",
+	Title:            "tinyAPI",
+	Description:      "Тестовое задание",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

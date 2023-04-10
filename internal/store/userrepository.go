@@ -1,6 +1,11 @@
 package store
 
-import "authAPI/internal/model"
+import (
+	"authAPI/internal/model"
+	"fmt"
+
+	"github.com/lib/pq"
+)
 
 type UserRepository struct {
 	store *Store
@@ -13,6 +18,9 @@ func (r *UserRepository) Auth(u *model.User) {
 func (r *UserRepository) LogGet(u *model.User) (*[]model.UserLog, error) {
 	rows, err := r.store.db.Query("select * from api.fn_user_log_get(arg_token := $1)", u.Token)
 	if err != nil {
+		if err, ok := err.(*pq.Error); ok {
+			return nil, fmt.Errorf("%v", err.Message)
+		}
 		return nil, err
 	}
 
@@ -36,6 +44,9 @@ func (r *UserRepository) LogGet(u *model.User) (*[]model.UserLog, error) {
 
 func (r *UserRepository) LogClean(u *model.User) error {
 	if _, err := r.store.db.Exec("select api.fn_user_log_clean(arg_token := $1)", u.Token); err != nil {
+		if err, ok := err.(*pq.Error); ok {
+			return fmt.Errorf("%v", err.Message)
+		}
 		return err
 	}
 	return nil

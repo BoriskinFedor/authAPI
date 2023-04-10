@@ -1,8 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Тестовое задание на GO-разработчика",
-        "title": "API авторизации по токену",
+        "description": "Тестовое задание",
+        "title": "tinyAPI",
         "contact": {},
         "version": "1.0"
     },
@@ -39,7 +39,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Session"
+                            "$ref": "#/definitions/model.User"
                         }
                     }
                 }
@@ -105,9 +105,15 @@
         }
     },
     "definitions": {
-        "model.Session": {
+        "model.User": {
             "type": "object",
             "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
                 "token": {
                     "type": "string"
                 }

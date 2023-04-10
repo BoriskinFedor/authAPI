@@ -2,6 +2,7 @@ package server
 
 import (
 	"authAPI/internal/model"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,7 +13,7 @@ import (
 // @Param 		X-Password header string true "Пароль пользователя"
 // @Produce 	application/json
 // @Tags 		auth
-// @Success 	200 {object} model.Session
+// @Success 	200 {object} model.User
 // @Router		/auth [post]
 func (s *Server) Auth(ctx *gin.Context) {
 	user := model.User{
@@ -22,7 +23,14 @@ func (s *Server) Auth(ctx *gin.Context) {
 
 	s.store.User().Auth(&user)
 
-	ctx.JSON(200, gin.H{
+	var status int
+	if user.Token == "" {
+		status = http.StatusForbidden
+	} else {
+		status = http.StatusOK
+	}
+
+	ctx.JSON(status, gin.H{
 		"X-Token": user.Token,
 	})
 }

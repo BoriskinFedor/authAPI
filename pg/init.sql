@@ -31,8 +31,8 @@ REVOKE ALL ON SCHEMA basis FROM public;
 create table basis.t_user(
 	id serial primary key,
 	login varchar(50) NOT NULL,
-	password varchar(256) NOT NULL,
-	password_salt varchar(16) NOT NULL,
+	password varchar NOT NULL,
+	password_salt varchar NOT NULL,
 	failed_pass_count integer NOT NULL default 0::integer
 );
 grant all on table basis.t_user to postgres;
@@ -177,7 +177,7 @@ begin
     into v_user_id;
 
     if not found then
-        raise exception 'API_ERROR Ошибка параметра';
+        raise exception 'API_ERROR Ошибка авторизации';
     end if;
 
     return query
@@ -222,7 +222,7 @@ begin
     into v_user_id;
 
     if not found then
-        raise exception 'API_ERROR Ошибка параметра';
+        raise exception 'API_ERROR Ошибка авторизации';
     end if;
 
     delete from api.t_user_log l
@@ -278,11 +278,11 @@ begin
         v_is_correct_password;
     
     if not found then
-        raise exception 'API_ERROR Ошибка авторизации. Проверьте корректность логина и пароля';
+        raise exception 'API_ERROR (%) Ошибка авторизации. Проверьте корректность логина и пароля', arg_login;
     end if;
 
     if v_failed_pass_count >= v_failed_pass_limit then
-        raise exception 'API_ERROR Превышено максимальное количество попыток авторизации';
+        raise exception 'API_ERROR (%) Превышено максимальное количество попыток авторизации', arg_login;
     end if;
 
     if coalesce(v_is_correct_password, false) then
@@ -350,7 +350,7 @@ begin
             );
         end if;
 
-        raise exception 'API_ERROR Ошибка авторизации. Проверьте корректность логина и пароля';
+        return null;
     end if;
 
     return v_token;
@@ -408,4 +408,4 @@ begin
 end $$ language plpgsql;
 
 insert into basis.t_user(login, password, password_salt)
-values('bfv', sha256(('1'||'2')::varchar::bytea)::varchar, '2');
+values('test', sha256(('1'||'2')::varchar::bytea)::varchar, '2');

@@ -2,6 +2,7 @@ package server
 
 import (
 	"authAPI/internal/model"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,9 +19,19 @@ func (s *Server) LogClean(ctx *gin.Context) {
 		Token: ctx.Request.Header["X-Token"][0],
 	}
 
-	s.store.User().LogClean(&user)
+	if user.Token == "" {
+		ctx.JSON(http.StatusForbidden, gin.H{
+			"message": "token not found",
+		})
+	}
 
-	ctx.JSON(200, gin.H{
-		"status": "ok",
+	if err := s.store.User().LogClean(&user); err != nil {
+		ctx.JSON(http.StatusForbidden, gin.H{
+			"message": err,
+		})
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "success",
 	})
 }

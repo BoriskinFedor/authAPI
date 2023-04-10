@@ -6,16 +6,16 @@ import (
 	"log"
 )
 
-// @title API авторизации по токену
+// @title tinyAPI
 // @version 1.0
-// @description Тестовое задание на GO-разработчика
+// @description Тестовое задание
 
 // @host localhost:8080
 // @BasePath /
 func main() {
-	config := &server.Config{
-		DBURL:            "postgres://postgres:123456@db:5432?sslmode=disable",
-		DBReconnectCount: 40,
+	config, err := server.NewConfig("config.yaml")
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	srv := server.New(config)

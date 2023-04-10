@@ -1,7 +1,11 @@
 basePath: /
 definitions:
-  model.Session:
+  model.User:
     properties:
+      login:
+        type: string
+      password:
+        type: string
       token:
         type: string
     type: object
@@ -15,8 +19,8 @@ definitions:
 host: localhost:8080
 info:
   contact: {}
-  description: Тестовое задание на GO-разработчика
-  title: API авторизации по токену
+  description: Тестовое задание
+  title: tinyAPI
   version: "1.0"
 paths:
   /auth:
@@ -39,7 +43,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.Session'
+            $ref: '#/definitions/model.User'
       summary: Авторизация
       tags:
       - auth

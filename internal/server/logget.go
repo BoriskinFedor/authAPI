@@ -2,7 +2,7 @@ package server
 
 import (
 	"authAPI/internal/model"
-	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,9 +19,13 @@ func (s *Server) LogGet(ctx *gin.Context) {
 		Token: ctx.Request.Header["X-Token"][0],
 	}
 
-	logs, _ := s.store.User().LogGet(&user)
+	logs, err := s.store.User().LogGet(&user)
 
-	log.Println(logs)
-
-	ctx.JSON(200, logs)
+	if err != nil {
+		ctx.JSON(http.StatusForbidden, gin.H{
+			"message": err,
+		})
+	} else {
+		ctx.JSON(http.StatusOK, logs)
+	}
 }

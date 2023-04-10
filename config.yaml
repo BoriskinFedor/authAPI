@@ -1,0 +1,2 @@
+db_url: postgres://postgres:123456@db:5432?sslmode=disable
+db_wait_attempts: 50

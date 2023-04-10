@@ -5,7 +5,7 @@ services:
     build: ./
     command: ./authapi db
     ports:
-      - 6969:8080
+      - 8080:8080
     depends_on:
       - db
 
