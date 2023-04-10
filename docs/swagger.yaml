@@ -1,11 +1,7 @@
 basePath: /
 definitions:
-  model.User:
+  model.Session:
     properties:
-      login:
-        type: string
-      password:
-        type: string
       token:
         type: string
     type: object
@@ -43,7 +39,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.User'
+            $ref: '#/definitions/model.Session'
       summary: Авторизация
       tags:
       - auth

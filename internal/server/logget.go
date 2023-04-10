@@ -15,11 +15,11 @@ import (
 // @Success 	200 {object} []model.UserLog
 // @Router		/log [get]
 func (s *Server) LogGet(ctx *gin.Context) {
-	user := model.User{
+	session := model.Session{
 		Token: ctx.Request.Header["X-Token"][0],
 	}
 
-	logs, err := s.store.User().LogGet(&user)
+	logs, err := s.store.User().LogGet(&session)
 
 	if err != nil {
 		ctx.JSON(http.StatusForbidden, gin.H{

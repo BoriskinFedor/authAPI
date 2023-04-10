@@ -13,7 +13,7 @@ import (
 // @Param 		X-Password header string true "Пароль пользователя"
 // @Produce 	application/json
 // @Tags 		auth
-// @Success 	200 {object} model.User
+// @Success 	200 {object} model.Session
 // @Router		/auth [post]
 func (s *Server) Auth(ctx *gin.Context) {
 	user := model.User{
@@ -21,16 +21,16 @@ func (s *Server) Auth(ctx *gin.Context) {
 		Password: ctx.Request.Header["X-Password"][0],
 	}
 
-	s.store.User().Auth(&user)
+	session := s.store.User().Auth(&user)
 
 	var status int
-	if user.Token == "" {
+	if session.Token == "" {
 		status = http.StatusForbidden
 	} else {
 		status = http.StatusOK
 	}
 
 	ctx.JSON(status, gin.H{
-		"X-Token": user.Token,
+		"X-Token": session.Token,
 	})
 }

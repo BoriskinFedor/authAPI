@@ -46,7 +46,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.User"
+                            "$ref": "#/definitions/model.Session"
                         }
                     }
                 }
@@ -112,15 +112,9 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "model.User": {
+        "model.Session": {
             "type": "object",
             "properties": {
-                "login": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
                 "token": {
                     "type": "string"
                 }

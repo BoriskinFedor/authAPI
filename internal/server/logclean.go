@@ -15,17 +15,17 @@ import (
 // @Success 	200
 // @Router		/logclean [delete]
 func (s *Server) LogClean(ctx *gin.Context) {
-	user := model.User{
+	session := model.Session{
 		Token: ctx.Request.Header["X-Token"][0],
 	}
 
-	if user.Token == "" {
+	if session.Token == "" {
 		ctx.JSON(http.StatusForbidden, gin.H{
 			"message": "token not found",
 		})
 	}
 
-	if err := s.store.User().LogClean(&user); err != nil {
+	if err := s.store.User().LogClean(&session); err != nil {
 		ctx.JSON(http.StatusForbidden, gin.H{
 			"message": err,
 		})
